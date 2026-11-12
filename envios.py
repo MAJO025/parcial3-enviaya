@@ -87,7 +87,7 @@ def redondear_al_centenar(costo):
     return int(centenas) * MULTIPLO_REDONDEO
 
 
-def calc(peso, zona, cliente, dia, cupon=None, flag=False):
+def calc(peso, zona, cliente, dia, cupon=None):
     validar_entradas(peso, zona, dia)
     costo = calcular_tarifa_base(peso)
     costo = aplicar_recargo_zona(costo, zona)
@@ -95,6 +95,4 @@ def calc(peso, zona, cliente, dia, cupon=None, flag=False):
     costo = aplicar_cupon(costo, cupon)
     costo = aplicar_recargo_fin_de_semana(costo, dia)
     costo = aplicar_costo_minimo(costo)
-    if flag:
-        print("costo:", costo)
     return redondear_al_centenar(costo)
