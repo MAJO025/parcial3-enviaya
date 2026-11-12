@@ -372,21 +372,21 @@ Los resultados esperados se calcularon a mano con mi especificación. Los casos 
 
 | Camino | Secuencia de nodos | Qué recorre | Caso | Entradas (peso, zona, cliente, día, cupón) | Esperado | Heredado |
 |---|---|---|---|---|---|---|
-| P1 | 1-2-4-5-9-10-15-17-19-21-24-26-28-29 | Camino base: peso válido ≤ 3, urbana, entre semana, sin descuentos | CP-03 | 3, urbana, normal, 2, — | $6.000 | ✅ pasa |
-| P2 | 1-3-29 | Peso ≤ 0 | CP-01 | 0, urbana, normal, 2, — | Error | ✅ pasa |
-| P3 | 1-2-3-29 | Peso > 50 | CP-08 | 50,1, urbana, normal, 3, — | Error | ✅ pasa |
-| P4 | 1-2-4-6-7-9-10-15-17-19-21-24-26-28-29 | Tramo 2 | CP-04 | 3,1, urbana, normal, 2, — | $9.000 | ✅ pasa |
-| P5 | 1-2-4-6-8-9-10-15-17-19-21-24-26-28-29 | Tramo 3 | CP-06 | 10,1, urbana, normal, 2, — | 9.000 + 0,1 × 800 = 9.080 → $9.100 | ❌ da $9.000 (DEF-03) |
-| P6 | 1-2-4-5-9-11-12-15-17-19-21-24-26-28-29 | Zona rural | CP-33 | 3, rural, normal, 2, — | 6.000 × 1,15 = $6.900 | ✅ pasa |
-| P7 | 1-2-4-5-9-11-13-14-15-17-19-21-24-26-28-29 | Zona nacional | CP-34 | 3, nacional, normal, 2, — | 6.000 × 1,45 = $8.700 | ✅ pasa |
-| P8 | 1-2-4-6-7-9-11-13-15-17-19-21-24-26-28-29 | Zona no válida | CP-12 | 5, insular, normal, 2, — | Error (R2) | ❌ da $9.000 (DEF-04) |
-| P9 | 1-2-4-5-9-10-15-16-17-19-21-24-26-28-29 | Fin de semana (domingo) | CP-35 | 3, urbana, normal, 7, — | 6.000 + 2.000 = $8.000 | ✅ pasa |
-| P10 | 1-2-4-5-9-10-15-17-18-19-21-24-26-28-29 | Cliente frecuente | CP-36 | 3, urbana, frecuente, 2, — | 6.000 × 0,95 = $5.700 | ✅ pasa |
-| P11 | 1-2-4-5-9-10-15-17-19-20-21-24-26-28-29 | Cliente VIP | CP-37 | 3, urbana, vip, 2, — | 6.000 × 0,85 = $5.100 | ✅ pasa |
-| P12 | 1-2-4-5-9-10-15-17-19-21-22-23-24-26-28-29 | Cupón ENVIO10 | CP-38 | 3, urbana, normal, 2, ENVIO10 | 6.000 × 0,90 = $5.400 | ✅ pasa |
-| P13 | 1-2-4-5-9-10-15-17-19-21-22-24-26-28-29 | Cupón inexistente | CP-27 | 3, urbana, normal, 2, PROMO5 | $6.000 (se ignora) | ✅ pasa |
-| P14 | 1-2-4-5-9-10-15-17-19-20-21-22-23-24-25-26-28-29 | Mínimo de $5.000 | CP-28 | 3, urbana, vip, 2, ENVIO10 | 6.000 × 0,85 × 0,90 = 4.590 → $5.000 | ✅ pasa |
-| P15 | 1-2-4-5-9-10-15-17-19-21-24-26-27-28-29 | `flag = True` | CP-39 | 3, urbana, normal, 2, — y `flag=True` | Imprime `costo: 6000` y devuelve $6.000 | ✅ pasa |
+| P1 | 1-2-4-5-9-10-15-17-19-21-24-26-28-29 | Camino base: peso válido ≤ 3, urbana, entre semana, sin descuentos | CP-03 | 3, urbana, normal, 2, — | $6.000 |  pasa |
+| P2 | 1-3-29 | Peso ≤ 0 | CP-01 | 0, urbana, normal, 2, — | Error |  pasa |
+| P3 | 1-2-3-29 | Peso > 50 | CP-08 | 50,1, urbana, normal, 3, — | Error |  pasa |
+| P4 | 1-2-4-6-7-9-10-15-17-19-21-24-26-28-29 | Tramo 2 | CP-04 | 3,1, urbana, normal, 2, — | $9.000 |  pasa |
+| P5 | 1-2-4-6-8-9-10-15-17-19-21-24-26-28-29 | Tramo 3 | CP-06 | 10,1, urbana, normal, 2, — | 9.000 + 0,1 × 800 = 9.080 → $9.100 |  da $9.000 (DEF-03) |
+| P6 | 1-2-4-5-9-11-12-15-17-19-21-24-26-28-29 | Zona rural | CP-33 | 3, rural, normal, 2, — | 6.000 × 1,15 = $6.900 |  pasa |
+| P7 | 1-2-4-5-9-11-13-14-15-17-19-21-24-26-28-29 | Zona nacional | CP-34 | 3, nacional, normal, 2, — | 6.000 × 1,45 = $8.700 |  pasa |
+| P8 | 1-2-4-6-7-9-11-13-15-17-19-21-24-26-28-29 | Zona no válida | CP-12 | 5, insular, normal, 2, — | Error (R2) |  da $9.000 (DEF-04) |
+| P9 | 1-2-4-5-9-10-15-16-17-19-21-24-26-28-29 | Fin de semana (domingo) | CP-35 | 3, urbana, normal, 7, — | 6.000 + 2.000 = $8.000 |  pasa |
+| P10 | 1-2-4-5-9-10-15-17-18-19-21-24-26-28-29 | Cliente frecuente | CP-36 | 3, urbana, frecuente, 2, — | 6.000 × 0,95 = $5.700 |  pasa |
+| P11 | 1-2-4-5-9-10-15-17-19-20-21-24-26-28-29 | Cliente VIP | CP-37 | 3, urbana, vip, 2, — | 6.000 × 0,85 = $5.100 |  pasa |
+| P12 | 1-2-4-5-9-10-15-17-19-21-22-23-24-26-28-29 | Cupón ENVIO10 | CP-38 | 3, urbana, normal, 2, ENVIO10 | 6.000 × 0,90 = $5.400 |  pasa |
+| P13 | 1-2-4-5-9-10-15-17-19-21-22-24-26-28-29 | Cupón inexistente | CP-27 | 3, urbana, normal, 2, PROMO5 | $6.000 (se ignora) |  pasa |
+| P14 | 1-2-4-5-9-10-15-17-19-20-21-22-23-24-25-26-28-29 | Mínimo de $5.000 | CP-28 | 3, urbana, vip, 2, ENVIO10 | 6.000 × 0,85 × 0,90 = 4.590 → $5.000 |  pasa |
+| P15 | 1-2-4-5-9-10-15-17-19-21-24-26-27-28-29 | `flag = True` | CP-39 | 3, urbana, normal, 2, — y `flag=True` | Imprime `costo: 6000` y devuelve $6.000 |  pasa |
 
 **Independencia.** P1 es el camino base. Cada camino siguiente agrega al menos una arista que los anteriores no tenían, y entre los 15 se recorren las **42 aristas** del grafo.
 
@@ -593,10 +593,189 @@ Los 19 casos fallidos quedan explicados por 5 defectos. Esto se comprobó corrig
 Las 37 líneas son las de `envios.py` sin contar líneas vacías ni comentarios. Si se usaran las 39 líneas totales, la densidad sería 12,82.
 
 ## Parte 6 · Mantenimiento y refactorización
-(pendiente)
+### 6.1 Malos olores (code smells) del código heredado
+
+Las líneas son las de `envios.py` v1.0.0.
+
+| # | Mal olor (nombre técnico) | Línea(s) | Qué pasa | Deuda técnica que genera | Cómo se resuelve |
+|---|---|---|---|---|---|
+| 1 | **Mysterious Name** (nombres poco descriptivos) | 10 y 13 a 39 | Los parámetros se llaman `p`, `z`, `c`, `d`, `cup` y la variable `t`. | Quien llega nuevo debe descifrar cada letra; aumenta el tiempo de lectura y el riesgo de confundir `c` con `cup`. | Renombrar a `peso`, `zona`, `cliente`, `dia`, `cupon`, `costo` |
+| 2 | **Magic Numbers** (números mágicos) | 11, 14, 16, 18, 26, 29, 34, 35, 36, 39 | `50`, `6000`, `9000`, `800`, `6`, `0.05`, `0.10`, `5000` y `100` están escritos a mano. El `50` repite PMAX sin usar CONFIG. | Cambiar una tarifa obliga a buscar el número en todo el archivo, con riesgo de olvidar alguno. | Constantes con nombre (`PESO_MAXIMO`, `COSTO_MINIMO`, …) |
+| 3 | **Long Method** (método largo) | 10 a 39 | `calc` valida, calcula la tarifa, aplica zona, fin de semana, descuentos, mínimo, imprime y redondea. Tiene 30 líneas y complejidad 15. | Es difícil de probar por partes y cualquier cambio puede romper otra regla. | Extraer 8 funciones, una por regla |
+| 4 | **Flag Argument** (argumento booleano) | 10, 37 y 38 | `flag=False` hace que la función además imprima. | La función tiene dos comportamientos y su interfaz confunde. Mezcla cálculo con entrada/salida. | Eliminar `flag` y el `print` |
+| 5 | **Dead Code** (código muerto) | 19 y 20 | `if z == "urbana": t = t` no hace nada. | Ruido que sugiere lógica donde no la hay. | Eliminarlo |
+| 6 | **Switch Statements** (cadenas de condicionales) | 19 a 24 y 28 a 31 | Cadena `if/elif` sobre la zona y `if` sobre el cliente. | Para agregar una zona hay que modificar la función (viola Abierto/Cerrado). | Patrón Estrategia para las zonas |
+| 7 | **Duplicated Code** (código duplicado) | 22, 24, 29, 31 y 34 | Se repite el patrón `t = t ± t * porcentaje`. | Un cambio en cómo se aplica un porcentaje exige tocar cinco líneas. | Funciones por regla y estrategias |
+| 8 | **Nested Conditional** (condicional anidado) y comparación no idiomática con `None` | 32 a 34 | `if cup != None:` con otro `if cup == "ENVIO10":` dentro. | Más niveles de sangría y una comparación que Python desaconseja (`is not None`). | Una sola condición: `cupon == CUPON_ENVIO10` |
+| 9 | **Lack of Documentation** (falta de documentación) | 10 a 39 | No hay docstrings y solo hay un comentario (línea 25). | Hay que deducir las reglas leyendo el código. | Docstrings que citan la regla (R1 a R8) |
+
+### 6.2 Clasificación de los cambios
+
+| Cambio | Rama | Tipo de mantenimiento | Justificación |
+|---|---|---|---|
+| DEF-01 a DEF-05 | `fix/DEF-01` … `fix/DEF-05` | **Correctivo** | Corrigen defectos que incumplen R1, R2, R5 y R8. |
+| Configuración de pytest y dependencias | `test/suite` | **Preventivo** | Facilita detectar defectos futuros antes de que lleguen a producción. |
+| Constantes, nombres y código muerto | `refactor/estrategia` | **Preventivo** | Reduce la deuda técnica sin cambiar el comportamiento. |
+| Extraer funciones | `refactor/estrategia` | **Preventivo** | Cada regla queda aislada y se puede cambiar sin afectar las demás. |
+| Eliminar `flag` | `refactor/estrategia` | **Preventivo** | Elimina un mal olor; además cambia la interfaz (MAJOR). |
+| Patrón Estrategia en las zonas | `refactor/estrategia` | **Preventivo** | Permite agregar zonas (por ejemplo San Andrés) sin modificar `calc`. |
+| Hora pico (Parte 8) | `feature/hora-pico` | **Perfectivo** | Agrega una funcionalidad nueva pedida por el negocio. |
+
+No hay mantenimiento **adaptativo** en esta entrega, porque no cambió el entorno (sistema operativo, versión del lenguaje, normas externas).
+
+### 6.3 Refactorización
+
+La rama `refactor/estrategia` tiene cinco commits. Después de cada uno se ejecutaron las 40 pruebas.
+
+| Paso | Qué se hizo | Resultado de pytest |
+|---|---|---|
+| 1 | Constantes con nombre, nombres descriptivos, se quita el código muerto y se simplifica el cupón | 40 passed |
+| 2 | Se extraen 8 funciones: `validar_entradas`, `calcular_tarifa_base`, `aplicar_recargo_zona`, `aplicar_descuento_cliente`, `aplicar_cupon`, `aplicar_recargo_fin_de_semana`, `aplicar_costo_minimo`, `redondear_al_centenar` | 40 passed |
+| 3a | Se actualiza CP-39 para que verifique que `flag` ya no existe (prueba primero) | **1 failed** (rojo) |
+| 3b | Se elimina `flag` y el `print` | 40 passed (verde) |
+| 4 | Patrón Estrategia para las zonas | 40 passed |
+
+**Patrón Estrategia.** Antes, la zona se resolvía con una cadena `if/elif` dentro de la función. Ahora cada zona es una clase con el mismo método `aplicar(costo)`, y `calc` elige la estrategia con un diccionario:
+
+```python
+class RecargoZona(ABC):
+    @abstractmethod
+    def aplicar(self, costo):
+        """Devuelve el costo con el recargo de la zona."""
+
+class ZonaRural(RecargoZona):
+    def aplicar(self, costo):
+        return costo + costo * CONFIG["RECARGO_RURAL"]
+
+ESTRATEGIAS_ZONA = {"urbana": ZonaUrbana(), "rural": ZonaRural(), "nacional": ZonaNacional()}
+
+def aplicar_recargo_zona(costo, zona):
+    return ESTRATEGIAS_ZONA[zona].aplicar(costo)
+```
+
+Para agregar una zona basta una clase nueva y una entrada en el diccionario, sin tocar `calc`. Además, la validación de la zona (R2) usa el mismo diccionario: si la zona no está en `ESTRATEGIAS_ZONA`, se lanza el error.
+
+![Diagrama de clases UML del patrón Estrategia](evidencias/uml_estrategia_zonas.png)
+
+### 6.4 Corrección de los defectos
+
+| Defecto | Rama | Cambio |
+|---|---|---|
+| DEF-01 | `fix/DEF-01` | `if d > 6:` pasa a `if d >= 6:` |
+| DEF-02 | `fix/DEF-02` | El bloque del recargo de fin de semana se mueve después del cupón y antes del mínimo |
+| DEF-03 | `fix/DEF-03` | `int(t / 100) * 100` pasa a redondeo con `Decimal` y `ROUND_HALF_UP` |
+| DEF-04 | `fix/DEF-04` | Se agregan las validaciones de zona y de día después de la del peso |
+| DEF-05 | `fix/DEF-05` | `"peso invalido"` pasa a `"peso inválido"` |
+
+Al redondear se usa `Decimal(str(round(t, 6)))`, para que un error de punto flotante como `10349.999999999998` no haga bajar un valor que debería ser `10350`.
+
+### 6.5 Pruebas de regresión
+
+Se ejecutó la misma suite de 40 casos después de cada integración:
+
+| Momento | Fallan | Pasan |
+|---|---|---|
+| v1.0.0 con la suite | 19 | 21 |
+| Tras `fix/DEF-01` | 18 | 22 |
+| Tras `fix/DEF-02` | 15 | 25 |
+| Tras `fix/DEF-03` | 4 | 36 |
+| Tras `fix/DEF-04` | 1 | 39 |
+| Tras `fix/DEF-05` (v1.0.1) | **0** | **40** |
+| Refactorización (v2.0.0) | **0** | **40** |
+
+![Regresión en verde: 40 passed](evidencias/05_regresion_en_verde.png)
+
+### 6.6 Comparación antes y después
+
+| Métrica | Antes (v1.0.0) | Después (v2.0.0) |
+|---|---|---|
+| Complejidad ciclomática de `calc` | 15 | 1 |
+| Complejidad máxima de una función | 15 | 6 (`validar_entradas`) |
+| Complejidad promedio (radon) | 15,0 | 1,88 |
+| Funciones y clases | 1 función | 9 funciones y 4 clases |
+| Líneas totales | 39 | 125 |
+| Líneas de código (sin vacías ni comentarios) | 37 | 83 |
+| Función más larga | 30 líneas | 9 líneas |
+| Cobertura de sentencias (suite completa) | 100 % (29 de 29) | 100 % (71 de 71) |
+| Cobertura de ramas (suite completa) | 100 % (26 de 26) | 100 % (18 de 18) |
+| Pruebas que pasan | 21 de 40 (52,5 %) | 40 de 40 (100 %) |
+| Defectos abiertos | 5 | 0 |
+
+**Lectura.** El código tiene más líneas, porque cada función lleva su nombre, su documentación y su estructura. A cambio, ninguna función supera 9 líneas ni complejidad 6, y cada regla del negocio vive en un solo lugar. La complejidad se midió con `radon cc envios.py -s -a`.
+
+![Cobertura final](evidencias/07_cobertura_final.png)
 
 ## Parte 7 · Gestión de configuración
-(pendiente)
+### 7.1 Etiqueta v1.0.0
+
+El primer commit contiene el código heredado sin modificaciones, solo con mi `CONFIG`, y tiene la etiqueta anotada `v1.0.0`:
+
+```
+git tag -a v1.0.0 -m "Versión heredada, sin modificaciones"
+```
+
+### 7.2 Ramas e integración
+
+Cada rama sale de `main`, se prueba y se integra con `git merge --no-ff`, que conserva en el historial la forma de la rama.
+
+| Rama | Contenido | Commits | Integración |
+|---|---|---|---|
+| `test/suite` | `pytest.ini` y `requirements-dev.txt` | 1 | merge a `main` |
+| `fix/DEF-01` | Sábado suma el recargo | 1 | merge a `main` |
+| `fix/DEF-02` | Recargo después de los descuentos | 1 | merge a `main` |
+| `fix/DEF-03` | Redondeo al centenar más cercano | 1 | merge a `main` |
+| `fix/DEF-04` | Validación de zona y día | 1 | merge a `main` |
+| `fix/DEF-05` | Mensaje "peso inválido" | 1 | merge a `main` |
+| `refactor/estrategia` | Constantes, funciones, sin `flag`, patrón Estrategia | 5 | merge a `main` |
+
+Las ramas `fix` se integraron una a una, y cada una salió de un `main` que ya tenía la anterior, para evitar conflictos en las líneas que comparten.
+
+### 7.3 Versionado semántico
+
+El formato es `MAJOR.MINOR.PATCH`:
+
+- **PATCH:** correcciones de errores que no cambian la interfaz.
+- **MINOR:** funcionalidad nueva compatible con lo anterior.
+- **MAJOR:** cambios incompatibles en la interfaz.
+
+| Versión | Qué incluye | Por qué ese número |
+|---|---|---|
+| **v1.0.0** | Código heredado | Versión base |
+| **v1.0.1** | DEF-01 a DEF-05 | **PATCH**: solo corrige defectos. La firma `calc(p, z, c, d, cup, flag)` no cambia. |
+| **v2.0.0** | Refactorización con Estrategia y sin `flag` | **MAJOR**: quitar `flag` cambia la interfaz pública. |
+
+**¿Quitar `flag` la hace major?** Sí. Antes, `calc(3, "urbana", "normal", 2, None, True)` funcionaba. Ahora lanza `TypeError`. Cualquier programa que llamara a `calc` con `flag` se rompe, y eso es un cambio incompatible, aunque el resultado del cálculo sea el mismo. El caso CP-39 lo demuestra: antes comprobaba que `flag=True` imprimía, y ahora comprueba que lanza `TypeError`.
+
+Por otro lado, las correcciones de DEF-01 a DEF-05 cambian los resultados, pero corrigen un comportamiento que ya era incorrecto según la especificación. Por eso cuentan como PATCH y no como MAJOR.
+
+### 7.4 CHANGELOG y notas de la versión
+
+El archivo `CHANGELOG.md` sigue el formato Keep a Changelog (secciones Added, Changed, Removed y Fixed) y está en la raíz del repositorio.
+
+**Notas de la versión 2.0.0**
+
+> **Cambio incompatible:** se elimina el argumento `flag` de `calc`. Si tu código llamaba `calc(..., flag=True)`, quita ese argumento. Si necesitabas ver el costo, imprime el valor que devuelve la función.
+>
+> **Mejoras internas:** `calc` se divide en 8 funciones con una sola responsabilidad; las zonas usan el patrón Estrategia (`RecargoZona`), así que agregar una zona nueva no requiere modificar `calc`; los números mágicos son constantes con nombre.
+>
+> **Calidad:** 40 pruebas automatizadas, todas en verde; cobertura de sentencias y de ramas del 100 %; complejidad máxima por función de 6 (antes 15).
+>
+> Incluye las correcciones de la versión 1.0.1 (DEF-01 a DEF-05).
+
+### 7.5 Historial de Git
+
+Comando: `git log --oneline --graph --all`
+
+![Salida de git log --oneline --graph --all](evidencias/06_git_log_grafo.png)
+
+Etiquetas: `v1.0.0`, `v1.0.1` y `v2.0.0` (comprobadas con `git tag`).
+
+### 7.6 Distribución de los commits en el día
+
+Comando: `git log --format="%h %ad %s" --date=format:"%H:%M"`
+
+![Horas de los commits](evidencias/08_commits_por_hora.png)
+
 
 ## Parte 8 · Solicitud de cambio y análisis de impacto
 (pendiente)
