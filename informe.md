@@ -778,4 +778,90 @@ Comando: `git log --format="%h %ad %s" --date=format:"%H:%M"`
 
 
 ## Parte 8 · Solicitud de cambio y análisis de impacto
-(pendiente)
+### 8.1 Mi solicitud de cambio
+
+(A + F) mod 3 = (4 + 4) mod 3 = **2** → **Hora pico**.
+
+> Se agrega el parámetro `hora` (de 0 a 23). Entre las 17 y las 19, inclusive, hay un recargo del 8 %, que se calcula después del recargo por zona.
+
+**Nuevo requisito R9.** Si se informa la hora y está entre 17 y 19 (inclusive), se suma el 8 % al costo ya recargado por zona. Una hora fuera de 0 a 23 lanza error.
+
+**Historia HU-04** *(Como operadora de EnvíaYa en Santa Marta, quiero que los envíos de la tarde con mucha demanda tengan un recargo del 8 %, para cubrir el costo de la hora pico.)*
+
+| CA | Dado | Cuando | Entonces |
+|---|---|---|---|
+| CA-4.1 | 3 kg dentro de Riohacha, cliente normal, día 2, a las 18 h | calculo el costo | 6.000 × 1,08 = 6.480 → **$6.500** |
+| CA-4.2 | el mismo envío a las 16 h o a las 20 h | calculo el costo | **$6.000** (sin recargo) |
+| CA-4.3 | el mismo envío, sábado (día 6), a las 18 h | calculo el costo | 6.000 × 1,08 + 2.000 = 8.480 → **$8.500** (el recargo de fin de semana no se multiplica) |
+| CA-4.4 | un envío con hora 24 | calculo el costo | se lanza un error |
+
+### 8.2 Decisiones de diseño (supuestos)
+
+| Decisión | Por qué |
+|---|---|
+| `hora` es **opcional** (`hora=None`). Sin hora no hay recargo. | Así las llamadas existentes siguen dando los mismos resultados. Si fuera obligatoria, todas se romperían. |
+| `hora` se pasa **solo por nombre** (`calc(..., hora=18)`). | Si fuera posicional, una llamada vieja `calc(..., None, True)` (el antiguo `flag`) se leería como hora 1 sin dar error. |
+| El 8 % va **después de la zona y antes de los descuentos**. | El enunciado dice "después del recargo por zona". Se aplica sobre el costo ya recargado. |
+| El recargo de fin de semana ($2.000) **no** se multiplica por 1,08. | Es un valor fijo que se suma después de los descuentos (R5). |
+| Las horas 17, 18 y 19 tienen recargo; 16 y 20 no. | "Inclusive" incluye ambos extremos. |
+
+### 8.3 Análisis de impacto con la matriz de trazabilidad
+
+| Requisito | Historia | Impacto | Casos de prueba | Código afectado |
+|---|---|---|---|---|
+| **R9 (nuevo)** | **HU-04 (nueva)** | **Directo** | CP-41 a CP-55 (nuevos) | `aplicar_recargo_hora_pico`, `validar_hora`, constantes de hora |
+| R2 (validaciones) | HU-01 | **Directo**: se valida un dato más | CP-48, CP-49 (nuevos); CP-12, 13, 14 se repiten | `validar_hora` |
+| R4 (recargo por zona) | HU-02 | **Indirecto**: el 8 % se calcula sobre su resultado | CP-10, 11, 33, 34; CP-51 (nuevo) | Orden de llamadas en `calc` |
+| R6 (descuentos y cupón) | HU-03 | **Indirecto**: se aplican sobre un costo que ahora puede incluir el 8 % | CP-17 a 26, 36 a 38; CP-53 (nuevo) | Orden de llamadas en `calc` |
+| R5 (fin de semana) | HU-03 | **Indirecto**: debe seguir sumándose al final, sin multiplicarse | CP-16, 18, 20, 22, 24, 26, 35; CP-52 y CP-55 (nuevos) | Orden de llamadas en `calc` |
+| R8 (mínimo y redondeo) | HU-03 | **Indirecto**: operan sobre el nuevo valor | CP-28, 29; CP-54 (nuevo) | Ninguno (misma lógica) |
+| R1, R3, R7 | HU-01, HU-02, HU-03 | **Ninguno** | Se re-ejecutan como regresión | Ninguno |
+
+**Partes del código:** cambian la firma y el cuerpo de `calc`, y se agregan `validar_hora`, `aplicar_recargo_hora_pico` y cinco constantes. No cambian las estrategias de zona, la tarifa base, los descuentos, el cupón, el fin de semana, el mínimo ni el redondeo.
+
+**Otros artefactos:** esta matriz, el CHANGELOG y la documentación de `calc`. El diagrama UML no cambia.
+
+**Riesgo principal:** el orden de las operaciones. Si el 8 % se aplicara después del fin de semana, CP-52 daría $8.600 en lugar de $8.500, y la prueba lo detectaría.
+
+### 8.4 Tipo de mantenimiento
+
+**Perfectivo.** Agrega una funcionalidad nueva pedida por el negocio. No corrige un defecto (correctivo), no responde a un cambio de entorno (adaptativo) ni reestructura sin cambiar el comportamiento (preventivo).
+
+### 8.5 Implementación con las pruebas primero
+
+Rama `feature/hora-pico`, que sale de `main` en la versión 2.0.0.
+
+| Paso | Qué se hizo | Resultado de pytest |
+|---|---|---|
+| 1 | Se escribió `tests/test_hora_pico.py` (CP-41 a CP-55, esperados calculados a mano) | **15 failed**, 41 passed (rojo) |
+| 2 | Se implementó el cambio en `envios.py` | **56 passed** (verde) |
+
+![Pruebas de hora pico fallando antes de implementar](evidencias/09_hora_pico_rojo.png)
+
+![Todas las pruebas en verde después de implementar](evidencias/10_hora_pico_verde.png)
+
+Cobertura final: **100 %** de sentencias (85 de 85) y de ramas (22 de 22). Complejidad máxima por función: 6 (`validar_entradas`).
+
+**Cálculo a mano de dos casos:**
+
+CP-53 (12 kg, nacional, vip, día 3, ENVIO10, hora 19):
+1. Tarifa: 9.000 + 2 × 800 = 10.600
+2. Nacional +45 %: 10.600 × 1,45 = 15.370
+3. Hora pico +8 %: 15.370 × 1,08 = 16.599,60
+4. VIP 15 %: 16.599,60 × 0,85 = 14.109,66
+5. Cupón 10 %: 14.109,66 × 0,90 = 12.698,694
+6. Día 3: sin recargo. Redondeo → **$12.700**
+
+CP-55 (3 kg, rural, frecuente, día 7, hora 17):
+1. Tarifa: $6.000. Rural +15 %: 6.900
+2. Hora pico +8 %: 6.900 × 1,08 = 7.452
+3. Frecuente 5 %: 7.452 × 0,95 = 7.079,40
+4. Domingo, después de descuentos: 7.079,40 + 2.000 = 9.079,40
+5. Redondeo → **$9.100**
+
+### 8.6 Nueva versión
+
+**v2.1.0 (MINOR).** Agrega funcionalidad nueva y es compatible con lo anterior: `hora` es opcional, y sin ella todos los resultados son idénticos a los de la versión 2.0.0. Por eso no es MAJOR. Tampoco es PATCH, porque no es una corrección de errores.
+
+El `CHANGELOG.md` tiene la sección `[2.1.0]` con *Added* y *Changed*.
+
