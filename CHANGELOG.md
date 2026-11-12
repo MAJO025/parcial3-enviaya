@@ -7,6 +7,18 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 
 ## [Unreleased]
 
+## [2.1.0] - 2026-11-11
+
+### Added
+- Hora pico: `calc` acepta el parámetro opcional `hora` (de 0 a 23), que se pasa solo por nombre
+  (`calc(..., hora=18)`). Entre las 17 y las 19 (inclusive) se suma un recargo del 8 %,
+  calculado después del recargo por zona y antes de los descuentos.
+- Validación de la hora: un valor fuera de 0 a 23 lanza `ValueError("hora inválida")`.
+- 15 pruebas nuevas (CP-41 a CP-55) y una prueba de que `hora` solo se acepta por nombre.
+
+### Changed
+- Sin `hora`, `calc` devuelve exactamente los mismos valores que en 2.0.0 (cambio compatible).
+
 ## [2.0.0] - 2026-11-11
 
 ### Added
@@ -46,7 +58,8 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - Versión heredada de la función `calc` para el cálculo del costo de envío, con `CONFIG`
   personalizado (sin modificaciones).
 
-[Unreleased]: https://github.com/MAJO025/parcial3-enviaya/compare/v2.0.0...HEAD
+[Unreleased]: https://github.com/MAJO025/parcial3-enviaya/compare/v2.1.0...HEAD
+[2.1.0]: https://github.com/MAJO025/parcial3-enviaya/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/MAJO025/parcial3-enviaya/compare/v1.0.1...v2.0.0
 [1.0.1]: https://github.com/MAJO025/parcial3-enviaya/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/MAJO025/parcial3-enviaya/releases/tag/v1.0.0
