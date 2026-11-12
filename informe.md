@@ -299,6 +299,12 @@ Reglas B impar (se aplican ambos: cliente primero y luego cupón) y E impar (el 
 
 ## Parte 5 · Automatización, ejecución y defectos
 
+### 5.1 Ejecución contra el código heredado (v1.0.0)
+
+Resultado: **18 fallan y 14 pasan** de 32 casos.
+
+![Pruebas fallando contra el código heredado](evidencias/01_fallos_codigo_heredado.png)
+
 > **Análisis preliminar** (se formaliza luego con ID, pasos, esperado/obtenido, severidad y prioridad).
 
 | Línea del código | ¿Defecto para mí? | Por qué |
