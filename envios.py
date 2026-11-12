@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from decimal import Decimal, ROUND_HALF_UP
 
 CONFIG = {
@@ -21,14 +22,44 @@ DIA_MINIMO = 1
 DIA_MAXIMO = 7
 COSTO_MINIMO = 5000
 MULTIPLO_REDONDEO = 100
-ZONAS_VALIDAS = ("urbana", "rural", "nacional")
+
+
+# ---------- Patrón Estrategia: recargo por zona (R4) ----------
+class RecargoZona(ABC):
+    """Estrategia: cada zona sabe cómo aplicar su recargo al costo."""
+
+    @abstractmethod
+    def aplicar(self, costo):
+        """Devuelve el costo con el recargo de la zona."""
+
+
+class ZonaUrbana(RecargoZona):
+    def aplicar(self, costo):
+        return costo
+
+
+class ZonaRural(RecargoZona):
+    def aplicar(self, costo):
+        return costo + costo * CONFIG["RECARGO_RURAL"]
+
+
+class ZonaNacional(RecargoZona):
+    def aplicar(self, costo):
+        return costo + costo * CONFIG["RECARGO_NACIONAL"]
+
+
+ESTRATEGIAS_ZONA = {
+    "urbana": ZonaUrbana(),
+    "rural": ZonaRural(),
+    "nacional": ZonaNacional(),
+}
 
 
 def validar_entradas(peso, zona, dia):
     """R1 y R2: lanza ValueError si peso, zona o día no son válidos."""
     if peso <= 0 or peso > PESO_MAXIMO:
         raise ValueError("peso inválido")
-    if zona not in ZONAS_VALIDAS:
+    if zona not in ESTRATEGIAS_ZONA:
         raise ValueError("zona inválida")
     if dia < DIA_MINIMO or dia > DIA_MAXIMO:
         raise ValueError("día inválido")
@@ -44,12 +75,8 @@ def calcular_tarifa_base(peso):
 
 
 def aplicar_recargo_zona(costo, zona):
-    """R4: recargo según la zona (la urbana no tiene)."""
-    if zona == "rural":
-        return costo + costo * CONFIG["RECARGO_RURAL"]
-    if zona == "nacional":
-        return costo + costo * CONFIG["RECARGO_NACIONAL"]
-    return costo
+    """R4: delega en la estrategia de la zona."""
+    return ESTRATEGIAS_ZONA[zona].aplicar(costo)
 
 
 def aplicar_descuento_cliente(costo, cliente):
