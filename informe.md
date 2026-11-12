@@ -295,7 +295,154 @@ Reglas B impar (se aplican ambos: cliente primero y luego cupón) y E impar (el 
 ---
 
 ## Parte 4 · Caja blanca
-(pendiente)
+
+Se analiza `calc` del código heredado (v1.0.0). Los números de línea son los de mi `envios.py` (39 líneas).
+
+### 4.1 Grafo de flujo
+
+**Convenciones.** Cada sentencia simple es un nodo (óvalo azul). Cada condición simple es un nodo predicado (rombo amarillo); por eso `p <= 0 or p > 50` se separa en dos nodos (1 y 2). Las aristas de un predicado se rotulan V (verdadero) y F (falso). El nodo 29 es la salida única: allí llegan tanto el `raise` como el `return`.
+
+| Nodo | Línea | Código |
+|---|---|---|
+| 1 | 11 | `p <= 0` (predicado) |
+| 2 | 11 | `p > 50` (predicado) |
+| 3 | 12 | `raise ValueError("peso invalido")` |
+| 4 | 13 | `p <= CONFIG["L1"]` (predicado) |
+| 5 | 14 | `t = 6000` |
+| 6 | 15 | `p <= CONFIG["L2"]` (predicado) |
+| 7 | 16 | `t = 9000` |
+| 8 | 18 | `t = 9000 + (p - L2) * 800` |
+| 9 | 19 | `z == "urbana"` (predicado) |
+| 10 | 20 | `t = t` |
+| 11 | 21 | `z == "rural"` (predicado) |
+| 12 | 22 | recargo rural |
+| 13 | 23 | `z == "nacional"` (predicado) |
+| 14 | 24 | recargo nacional |
+| 15 | 26 | `d > 6` (predicado) |
+| 16 | 27 | recargo de fin de semana |
+| 17 | 28 | `c == "frecuente"` (predicado) |
+| 18 | 29 | descuento frecuente 5 % |
+| 19 | 30 | `c == "vip"` (predicado) |
+| 20 | 31 | descuento VIP |
+| 21 | 32 | `cup != None` (predicado) |
+| 22 | 33 | `cup == "ENVIO10"` (predicado) |
+| 23 | 34 | descuento del cupón 10 % |
+| 24 | 35 | `t < 5000` (predicado) |
+| 25 | 36 | `t = 5000` |
+| 26 | 37 | `flag` (predicado) |
+| 27 | 38 | `print("costo:", t)` |
+| 28 | 39 | `return int(t / 100) * 100` |
+| 29 | — | FIN (salida) |
+
+![Grafo de flujo de calc](evidencias/grafo_flujo_calc.png)
+
+### 4.2 Complejidad ciclomática (tres formas)
+
+**a) Con aristas y nodos:** V(G) = E − N + 2 = 42 − 29 + 2 = **15**
+
+**b) Con nodos predicado:** hay 14 predicados (nodos 1, 2, 4, 6, 9, 11, 13, 15, 17, 19, 21, 22, 24 y 26), entonces V(G) = P + 1 = 14 + 1 = **15**
+
+**c) Con regiones:** el grafo tiene 14 regiones internas y 1 externa, entonces V(G) = **15**
+
+| Región | Nodos que la encierran | Qué decisión la origina |
+|---|---|---|
+| R1 | 1, 2, 3 | Condición compuesta de peso inválido |
+| R2 | 2, 3, 29 y el flujo normal hasta 28 | Error de peso contra flujo normal |
+| R3 | 4, 5, 6, 7, 9 | Peso ≤ L1 |
+| R4 | 6, 7, 8, 9 | Peso ≤ L2 |
+| R5 | 9, 10, 11, 12, 15 | Zona urbana |
+| R6 | 11, 12, 13, 14, 15 | Zona rural |
+| R7 | 13, 14, 15 | Zona nacional |
+| R8 | 15, 16, 17 | Día de fin de semana |
+| R9 | 17, 18, 19 | Cliente frecuente |
+| R10 | 19, 20, 21 | Cliente VIP |
+| R11 | 21, 22, 23, 24 | Hay cupón |
+| R12 | 22, 23, 24 | Cupón ENVIO10 |
+| R13 | 24, 25, 26 | Mínimo de $5.000 |
+| R14 | 26, 27, 28 | `flag` |
+| R15 | Exterior | Región externa |
+
+Las tres formas dan **15**, así que el cálculo es consistente. Con ese valor se necesitan **15 casos de prueba como mínimo** para recorrer todos los caminos independientes.
+
+**Interpretación.** Una complejidad entre 11 y 20 se considera moderada, con riesgo moderado de defectos y mantenimiento más costoso. Si la condición compuesta `p <= 0 or p > 50` se contara como una sola decisión, el valor sería 14. Uso 15 porque cada condición simple es un nodo predicado.
+
+### 4.3 Caminos independientes y casos de prueba
+
+Los resultados esperados se calcularon a mano con mi especificación. Los casos CP-33 a CP-40 son nuevos (ver 4.5); el resto viene de la matriz de caja negra.
+
+| Camino | Secuencia de nodos | Qué recorre | Caso | Entradas (peso, zona, cliente, día, cupón) | Esperado | Heredado |
+|---|---|---|---|---|---|---|
+| P1 | 1-2-4-5-9-10-15-17-19-21-24-26-28-29 | Camino base: peso válido ≤ 3, urbana, entre semana, sin descuentos | CP-03 | 3, urbana, normal, 2, — | $6.000 | ✅ pasa |
+| P2 | 1-3-29 | Peso ≤ 0 | CP-01 | 0, urbana, normal, 2, — | Error | ✅ pasa |
+| P3 | 1-2-3-29 | Peso > 50 | CP-08 | 50,1, urbana, normal, 3, — | Error | ✅ pasa |
+| P4 | 1-2-4-6-7-9-10-15-17-19-21-24-26-28-29 | Tramo 2 | CP-04 | 3,1, urbana, normal, 2, — | $9.000 | ✅ pasa |
+| P5 | 1-2-4-6-8-9-10-15-17-19-21-24-26-28-29 | Tramo 3 | CP-06 | 10,1, urbana, normal, 2, — | 9.000 + 0,1 × 800 = 9.080 → $9.100 | ❌ da $9.000 (DEF-03) |
+| P6 | 1-2-4-5-9-11-12-15-17-19-21-24-26-28-29 | Zona rural | CP-33 | 3, rural, normal, 2, — | 6.000 × 1,15 = $6.900 | ✅ pasa |
+| P7 | 1-2-4-5-9-11-13-14-15-17-19-21-24-26-28-29 | Zona nacional | CP-34 | 3, nacional, normal, 2, — | 6.000 × 1,45 = $8.700 | ✅ pasa |
+| P8 | 1-2-4-6-7-9-11-13-15-17-19-21-24-26-28-29 | Zona no válida | CP-12 | 5, insular, normal, 2, — | Error (R2) | ❌ da $9.000 (DEF-04) |
+| P9 | 1-2-4-5-9-10-15-16-17-19-21-24-26-28-29 | Fin de semana (domingo) | CP-35 | 3, urbana, normal, 7, — | 6.000 + 2.000 = $8.000 | ✅ pasa |
+| P10 | 1-2-4-5-9-10-15-17-18-19-21-24-26-28-29 | Cliente frecuente | CP-36 | 3, urbana, frecuente, 2, — | 6.000 × 0,95 = $5.700 | ✅ pasa |
+| P11 | 1-2-4-5-9-10-15-17-19-20-21-24-26-28-29 | Cliente VIP | CP-37 | 3, urbana, vip, 2, — | 6.000 × 0,85 = $5.100 | ✅ pasa |
+| P12 | 1-2-4-5-9-10-15-17-19-21-22-23-24-26-28-29 | Cupón ENVIO10 | CP-38 | 3, urbana, normal, 2, ENVIO10 | 6.000 × 0,90 = $5.400 | ✅ pasa |
+| P13 | 1-2-4-5-9-10-15-17-19-21-22-24-26-28-29 | Cupón inexistente | CP-27 | 3, urbana, normal, 2, PROMO5 | $6.000 (se ignora) | ✅ pasa |
+| P14 | 1-2-4-5-9-10-15-17-19-20-21-22-23-24-25-26-28-29 | Mínimo de $5.000 | CP-28 | 3, urbana, vip, 2, ENVIO10 | 6.000 × 0,85 × 0,90 = 4.590 → $5.000 | ✅ pasa |
+| P15 | 1-2-4-5-9-10-15-17-19-21-24-26-27-28-29 | `flag = True` | CP-39 | 3, urbana, normal, 2, — y `flag=True` | Imprime `costo: 6000` y devuelve $6.000 | ✅ pasa |
+
+**Independencia.** P1 es el camino base. Cada camino siguiente agrega al menos una arista que los anteriores no tenían, y entre los 15 se recorren las **42 aristas** del grafo.
+
+> Pasa o falla la prueba **no afecta** que el camino se haya recorrido: los casos P5 y P8 fallan porque el código heredado tiene defectos, pero igual recorren su camino.
+
+### 4.4 Cobertura de sentencias y de ramas
+
+**Cobertura de sentencias** (ejecutar cada línea al menos una vez). `calc` tiene 27 sentencias ejecutables. Basta este conjunto mínimo de **6 casos**:
+
+| Caso | Sentencias que aporta |
+|---|---|
+| CP-01 | 12 (`raise`) |
+| CP-04 | 16 (tramo 2) |
+| CP-28 | 14, 20, 31, 34, 36 (tramo 1, urbana, VIP, cupón, mínimo) |
+| CP-31 | 18, 24, 27 (tramo 3, nacional, fin de semana) |
+| CP-32 | 22, 29 (rural, frecuente) |
+| CP-39 | 38 (`print` del `flag`) |
+
+Las demás líneas (11, 13, 15, 19, 21, 23, 26, 28, 30, 32, 33, 35, 37 y 39) las ejecuta cualquier caso válido.
+
+**Cobertura de ramas** (cada decisión en verdadero y en falso). Hay 14 predicados, es decir 28 resultados posibles. Basta este conjunto mínimo de **8 casos**: CP-01, CP-08, CP-12, CP-27, CP-28, CP-31, CP-32 y CP-39.
+
+| Predicado | Nodo | Verdadero lo cubre | Falso lo cubre |
+|---|---|---|---|
+| `p <= 0` | 1 | CP-01 | CP-08 |
+| `p > 50` | 2 | CP-08 | CP-12 |
+| `p <= L1` | 4 | CP-28 | CP-12 |
+| `p <= L2` | 6 | CP-12 | CP-31 |
+| `z == "urbana"` | 9 | CP-28 | CP-32 |
+| `z == "rural"` | 11 | CP-32 | CP-31 |
+| `z == "nacional"` | 13 | CP-31 | CP-12 |
+| `d > 6` | 15 | CP-31 | CP-28 |
+| `c == "frecuente"` | 17 | CP-32 | CP-28 |
+| `c == "vip"` | 19 | CP-28 | CP-32 |
+| `cup != None` | 21 | CP-27 | CP-32 |
+| `cup == "ENVIO10"` | 22 | CP-28 | CP-27 |
+| `t < 5000` | 24 | CP-28 | CP-31 |
+| `flag` | 26 | CP-39 | CP-28 |
+
+Los **15 casos de caminos independientes** (4.3) logran ambas coberturas al 100 %. En cambio, los 32 casos de caja negra **solos** no ejecutan la línea 38 (`print` del `flag`), porque ninguna prueba de caja negra activa ese parámetro. Esa es la utilidad de la caja blanca: encuentra código que la especificación no menciona. Las mediciones reales con pytest-cov están en la sección 5.3.
+
+### 4.5 Casos nuevos de caja blanca y trazabilidad
+
+| ID | Requisito | Propósito |
+|---|---|---|
+| CP-33 | R4 | Camino rural |
+| CP-34 | R4 | Camino nacional |
+| CP-35 | R5 | Camino de domingo |
+| CP-36 | R6 | Camino cliente frecuente |
+| CP-37 | R6 | Camino cliente VIP |
+| CP-38 | R6 | Camino cupón ENVIO10 |
+| CP-39 | — | Camino del argumento `flag` (se eliminará en la refactorización) |
+| CP-40 | R1 | Mensaje exacto "peso inválido" |
+
+Actualización de la matriz de trazabilidad (Parte 3.6): R1 agrega CP-40; R4 agrega CP-33 y CP-34; R5 agrega CP-35; R6 agrega CP-36, CP-37 y CP-38.
+
 
 ## Parte 5 · Automatización, ejecución y defectos
 
@@ -305,19 +452,145 @@ Resultado: **18 fallan y 14 pasan** de 32 casos.
 
 ![Pruebas fallando contra el código heredado](evidencias/01_fallos_codigo_heredado.png)
 
-> **Análisis preliminar** (se formaliza luego con ID, pasos, esperado/obtenido, severidad y prioridad).
+### 5.2 Automatización de los casos con pytest
 
-| Línea del código | ¿Defecto para mí? | Por qué |
-|------------------|:-----------------:|---------|
-| `p > 50` | No | Mi PMAX es 50, coincide. |
-| `p <= L1` | No | Con D par el límite se incluye. |
-| `d > 6` | **Sí** | Solo toma el domingo; el sábado (6) también debe recargar (`d >= 6`). |
-| Recargo de fin de semana antes de descuentos | **Sí** | Con E impar va después de los descuentos. |
-| Descuento de cliente y luego cupón | No | Coincide con B impar. |
-| Cupón desconocido se ignora | No | Coincide con F par. |
-| `int(t / 100) * 100` | **Sí** | Trunca; R8 pide redondear al más cercano (los $50 suben). |
-| No valida zona ni día | **Sí** | Falta R2. |
-| Mensaje `"peso invalido"` | Posible (menor) | R1 pide "peso inválido" (con tilde). |
+Todos los casos están automatizados con pytest y se ejecutan contra el código heredado (v1.0.0).
+
+| Archivo | Casos | Contenido |
+|---|---|---|
+| `tests/test_envios.py` | 32 | Caja negra (CP-01 a CP-32), parametrizados |
+| `tests/test_caja_blanca.py` | 8 | Caminos independientes y casos adicionales (CP-33 a CP-40) |
+| **Total** | **40** | |
+
+Cada fila de la matriz de casos es una tupla `(id, peso, zona, cliente, día, cupón, esperado)`. Pytest llama a `calc` con esas entradas y compara con el esperado, que fue calculado a mano con mi especificación. Cuando el esperado es un error, la prueba usa `pytest.raises(ValueError)`.
+
+Comando: `python -m pytest tests -v`
+
+Resultado de la suite completa: **19 fallan y 21 pasan** de 40 casos.
+
+![Suite completa contra el código heredado](evidencias/02_suite_completa_heredado.png)
+
+La ejecución de 5.1 (solo caja negra) sigue siendo válida: 18 fallan y 14 pasan de 32. El caso que se suma al fallo en caja blanca es CP-40, que detecta el mensaje sin tilde (DEF-05).
+
+### 5.3 Medición de cobertura
+
+Herramienta: `pytest-cov` (coverage.py) con medición de ramas.
+
+Comando: `python -m pytest tests --cov=envios --cov-branch --cov-report=term-missing`
+
+| Suite | Casos | Sentencias | Ramas | Total pytest-cov | Líneas sin cubrir |
+|---|---|---|---|---|---|
+| Solo caja negra | 32 | 28 de 29 = 96,6 % | 25 de 26 = 96,2 % | 96 % | 38 |
+| Suite completa | 40 | 29 de 29 = 100 % | 26 de 26 = 100 % | 100 % | ninguna |
+
+Coverage.py cuenta 29 sentencias (las 27 de `calc` más `CONFIG` y `def`, que se ejecutan al importar el módulo) y 26 ramas (13 decisiones de línea × 2 resultados). La columna "Total" combina sentencias y ramas.
+
+![Cobertura solo con caja negra](evidencias/03_cobertura_caja_negra.png)
+
+![Cobertura con la suite completa](evidencias/04_cobertura_suite_completa.png)
+
+**Lectura.** La caja negra deja sin ejecutar la línea 38 (`print` del argumento `flag`). Los casos de caja blanca la cubren. Aun con 100 % de cobertura fallan 19 pruebas: la cobertura mide qué código se ejecuta, no si el resultado es correcto.
+
+### 5.4 Registro de defectos
+
+**Escala de severidad** (impacto en el negocio): *Crítica*, el sistema no puede operar o falla en la mayoría de los envíos con pérdida grave. *Alta*, una regla central de cobro produce un valor incorrecto. *Media*, falta una validación o el error ocurre en un caso limitado. *Baja*, un detalle que no cambia el cálculo.
+
+**Escala de prioridad** (urgencia de corregir): *Alta*, se corrige antes de cualquier otra cosa. *Media*, se corrige en esta versión. *Baja*, puede esperar.
+
+#### DEF-01 · El sábado no se cobra el recargo de fin de semana
+
+| Campo | Detalle |
+|---|---|
+| Requisito que incumple | R5 (sábado y domingo recargan $2.000) |
+| Ubicación | Línea 26: `if d > 6:` |
+| Pasos para reproducir | `python -c "from envios import calc; print(calc(12, 'urbana', 'normal', 6, None))"` |
+| Resultado esperado | $12.600 (10.600 + 2.000) |
+| Resultado obtenido | $10.600 |
+| Casos que lo detectan | CP-16, CP-18, CP-20, CP-22, CP-30, CP-32 |
+| Severidad | **Alta**: el sistema deja de cobrar $2.000 en todos los envíos del sábado, una de las dos jornadas que la regla de negocio define como fin de semana. |
+| Prioridad | **Alta**: afecta directamente los ingresos y se corrige cambiando una sola comparación (`>=`), con riesgo bajo. |
+
+#### DEF-02 · El recargo de fin de semana se suma antes de los descuentos
+
+| Campo | Detalle |
+|---|---|
+| Requisito que incumple | R5 con mi regla E impar (el recargo va después de los descuentos) |
+| Ubicación | Líneas 26 a 27, antes de los descuentos de las líneas 28 a 34 |
+| Pasos para reproducir | `python -c "from envios import calc; print(calc(12, 'urbana', 'vip', 7, None))"` |
+| Resultado esperado | 10.600 × 0,85 = 9.010; + 2.000 = 11.010 → $11.000 |
+| Resultado obtenido | (10.600 + 2.000) × 0,85 = 10.710 → $10.700 |
+| Casos que lo detectan | CP-18, CP-20, CP-22, CP-24, CP-26, CP-30, CP-31, CP-32 |
+| Severidad | **Alta**: los clientes con descuento o cupón pagan menos de lo debido, porque el descuento también rebaja el recargo. En CP-26 la diferencia es de $500. |
+| Prioridad | **Alta**: está en el mismo bloque de DEF-01 y se corrige al mismo tiempo, moviendo el recargo después de los descuentos y antes del mínimo. |
+
+#### DEF-03 · El redondeo trunca en vez de redondear al múltiplo de $100 más cercano
+
+| Campo | Detalle |
+|---|---|
+| Requisito que incumple | R8 (redondeo al $100 más cercano; los $50 suben) |
+| Ubicación | Línea 39: `return int(t / 100) * 100` |
+| Pasos para reproducir | `python -c "from envios import calc; print(calc(5, 'rural', 'normal', 2, None))"` |
+| Resultado esperado | 9.000 × 1,15 = 10.350 → $10.400 (los $50 suben) |
+| Resultado obtenido | $10.300 |
+| Casos que lo detectan | CP-06, CP-10, CP-11, CP-19, CP-20, CP-21, CP-22, CP-29, CP-30, CP-31, CP-32 |
+| Severidad | **Alta**: afecta casi todos los envíos, ya que cualquier costo con decenas distintas de cero se trunca, y el cliente paga hasta $99 menos por envío. Es el defecto con más casos fallidos (11 de 32). |
+| Prioridad | **Alta**: afecta a todos los clientes y se corrige en una sola línea. |
+
+#### DEF-04 · No se validan la zona ni el día
+
+| Campo | Detalle |
+|---|---|
+| Requisito que incumple | R2 (zona no válida o día fuera de 1 a 7 debe lanzar error) |
+| Ubicación | Falta validación al inicio de la función (después de la línea 12) |
+| Pasos para reproducir | `python -c "from envios import calc; print(calc(5, 'insular', 'normal', 2, None))"`, y luego `calc(5, 'urbana', 'normal', 8, None)` |
+| Resultado esperado | Se lanza `ValueError` en ambos casos |
+| Resultado obtenido | $9.000 con zona insular (se cobra como urbana). $11.000 con día 8 (se cobra recargo de fin de semana). Con día 0 devuelve $9.000. |
+| Casos que lo detectan | CP-12, CP-13, CP-14 |
+| Severidad | **Media**: acepta datos inválidos y cobra un valor sin avisar. No altera el cálculo cuando los datos son válidos. |
+| Prioridad | **Media**: solo ocurre si el sistema que llama envía datos erróneos. Se corrige en esta versión. |
+
+#### DEF-05 · El mensaje de error del peso no coincide con la especificación
+
+| Campo | Detalle |
+|---|---|
+| Requisito que incumple | R1 (el mensaje debe ser "peso inválido") |
+| Ubicación | Línea 12: `raise ValueError("peso invalido")` |
+| Pasos para reproducir | `python -c "from envios import calc; calc(0, 'urbana', 'normal', 2)"` |
+| Resultado esperado | `ValueError: peso inválido` |
+| Resultado obtenido | `ValueError: peso invalido` (sin tilde) |
+| Casos que lo detectan | CP-40 |
+| Severidad | **Baja**: es un detalle de texto; no cambia ningún cálculo. |
+| Prioridad | **Baja**: puede esperar, aunque se corrige junto con el resto por ser trivial. |
+
+### 5.5 Trazabilidad entre defectos y casos fallidos
+
+| Caso fallido | Defecto(s) que lo causan |
+|---|---|
+| CP-06, CP-10, CP-11, CP-19, CP-21, CP-29 | DEF-03 |
+| CP-12, CP-13, CP-14 | DEF-04 |
+| CP-16 | DEF-01 |
+| CP-24, CP-26 | DEF-02 |
+| CP-18 | DEF-01 y DEF-02 |
+| CP-31 | DEF-02 y DEF-03 |
+| CP-20, CP-22, CP-30, CP-32 | DEF-01, DEF-02 y DEF-03 |
+| CP-40 | DEF-05 |
+
+Los 19 casos fallidos quedan explicados por 5 defectos. Esto se comprobó corrigiendo un defecto a la vez en una copia de prueba y viendo qué casos dejaban de fallar. Ningún caso queda sin explicar.
+
+### 5.6 Métricas
+
+| Métrica | Cálculo | Resultado |
+|---|---|---|
+| Porcentaje de casos que pasan | 21 de 40 | **52,5 %** (fallan 47,5 %) |
+| Solo caja negra | 14 de 32 | 43,75 % |
+| Solo caja blanca | 7 de 8 | 87,5 % |
+| Defectos por severidad | Crítica 0, Alta 3, Media 1, Baja 1 | **5 defectos** |
+| Densidad de defectos | 5 ÷ 37 líneas × 100 | **13,51 defectos por cada 100 líneas** |
+| Cobertura de sentencias | suite completa | 100 % (29 de 29) |
+| Cobertura de ramas | suite completa | 100 % (26 de 26) |
+| Cobertura solo caja negra | sentencias y ramas | 96,6 % y 96,2 % |
+
+Las 37 líneas son las de `envios.py` sin contar líneas vacías ni comentarios. Si se usaran las 39 líneas totales, la densidad sería 12,82.
 
 ## Parte 6 · Mantenimiento y refactorización
 (pendiente)
