@@ -46,7 +46,7 @@ y el proyecto usa [Versionado Semántico](https://semver.org/lang/es/).
 - Versión heredada de la función `calc` para el cálculo del costo de envío, con `CONFIG`
   personalizado (sin modificaciones).
 
-[Unreleased]: https://github.com/TU_USUARIO/parcial3-enviaya/compare/v2.0.0...HEAD
-[2.0.0]: https://github.com/TU_USUARIO/parcial3-enviaya/compare/v1.0.1...v2.0.0
-[1.0.1]: https://github.com/TU_USUARIO/parcial3-enviaya/compare/v1.0.0...v1.0.1
-[1.0.0]: https://github.com/TU_USUARIO/parcial3-enviaya/releases/tag/v1.0.0
+[Unreleased]: https://github.com/MAJO025/parcial3-enviaya/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/MAJO025/parcial3-enviaya/compare/v1.0.1...v2.0.0
+[1.0.1]: https://github.com/MAJO025/parcial3-enviaya/compare/v1.0.0...v1.0.1
+[1.0.0]: https://github.com/MAJO025/parcial3-enviaya/releases/tag/v1.0.0

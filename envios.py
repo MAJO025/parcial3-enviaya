@@ -22,6 +22,11 @@ DIA_MINIMO = 1
 DIA_MAXIMO = 7
 COSTO_MINIMO = 5000
 MULTIPLO_REDONDEO = 100
+RECARGO_HORA_PICO = 0.08
+HORA_PICO_INICIO = 17
+HORA_PICO_FIN = 19                  # inclusive
+HORA_MINIMA = 0
+HORA_MAXIMA = 23
 
 
 # ---------- Patrón Estrategia: recargo por zona (R4) ----------
@@ -65,6 +70,12 @@ def validar_entradas(peso, zona, dia):
         raise ValueError("día inválido")
 
 
+def validar_hora(hora):
+    """R9: si se informa la hora, debe estar entre 0 y 23."""
+    if hora is not None and (hora < HORA_MINIMA or hora > HORA_MAXIMA):
+        raise ValueError("hora inválida")
+
+
 def calcular_tarifa_base(peso):
     """R3: tarifa según el tramo de peso."""
     if peso <= CONFIG["L1"]:
@@ -77,6 +88,13 @@ def calcular_tarifa_base(peso):
 def aplicar_recargo_zona(costo, zona):
     """R4: delega en la estrategia de la zona."""
     return ESTRATEGIAS_ZONA[zona].aplicar(costo)
+
+
+def aplicar_recargo_hora_pico(costo, hora):
+    """R9: entre las 17 y las 19 (inclusive) se suma el 8 %, después del recargo por zona."""
+    if hora is not None and HORA_PICO_INICIO <= hora <= HORA_PICO_FIN:
+        return costo + costo * RECARGO_HORA_PICO
+    return costo
 
 
 def aplicar_descuento_cliente(costo, cliente):
@@ -114,10 +132,12 @@ def redondear_al_centenar(costo):
     return int(centenas) * MULTIPLO_REDONDEO
 
 
-def calc(peso, zona, cliente, dia, cupon=None):
+def calc(peso, zona, cliente, dia, cupon=None, *, hora=None):
     validar_entradas(peso, zona, dia)
+    validar_hora(hora)
     costo = calcular_tarifa_base(peso)
     costo = aplicar_recargo_zona(costo, zona)
+    costo = aplicar_recargo_hora_pico(costo, hora)
     costo = aplicar_descuento_cliente(costo, cliente)
     costo = aplicar_cupon(costo, cupon)
     costo = aplicar_recargo_fin_de_semana(costo, dia)
