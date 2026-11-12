@@ -20,11 +20,12 @@ def test_caja_blanca(cid, peso, zona, cliente, dia, cupon, esperado):
     assert calc(peso, zona, cliente, dia, cupon) == esperado
 
 
-def test_cp39_flag_imprime_costo(capsys):
-    """CP-39: con flag=True se imprime el costo y se devuelve $6.000."""
-    resultado = calc(3, "urbana", "normal", 2, None, True)
-    assert resultado == 6000
-    assert "costo:" in capsys.readouterr().out
+def test_cp39_flag_eliminado(capsys):
+    """CP-39 (actualizado en v2.0.0): el argumento flag ya no existe y calc no imprime."""
+    with pytest.raises(TypeError):
+        calc(3, "urbana", "normal", 2, None, True)
+    assert calc(3, "urbana", "normal", 2, None) == 6000
+    assert capsys.readouterr().out == ""
 
 
 def test_cp40_mensaje_peso_invalido():
